@@ -27,4 +27,6 @@ WORKDIR /home/admin
 ENV USER=admin
 ENV HOME=/home/admin
 
+RUN install -v -d -m 0750 ${HOME}/.config
+
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]

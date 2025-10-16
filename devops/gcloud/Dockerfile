@@ -27,6 +27,7 @@ WORKDIR /home/admin
 ENV USER=admin
 ENV HOME=/home/admin
 
-RUN mkdir -vp ${HOME}/.config/gcloud
+RUN install -v -d -m 0750 ${HOME}/.config \
+	&& install -v -d -m 0750 ${HOME}/.config/gcloud
 
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]
