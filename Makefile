@@ -1,5 +1,6 @@
 .PHONY: all
-all: debian/forky devops/gcloud devops/aws
+all:
+	$(MAKE) -j3 debian/forky devops/gcloud devops/aws
 
 .PHONY: debian/forky
 debian/forky:
