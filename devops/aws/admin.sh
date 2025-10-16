@@ -11,6 +11,7 @@ mkdir -vp "${workspace}/docker/config/aws"
 exec docker run -it --rm -u admin \
     --name "admin-aws-${reponame}" \
     --hostname "${reponame}.admin-aws.local" \
+    -e "TERM=${TERM}" \
     -v "${devops_srcdir}:/opt/devops" \
     -v "${workspace}/docker/config/aws:/home/admin/.config/aws" \
     -v "${PWD}:/home/admin/src" \

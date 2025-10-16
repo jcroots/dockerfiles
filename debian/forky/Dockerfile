@@ -33,8 +33,7 @@ RUN groupadd -o -g ${JRMS_GID} jrms \
 	&& useradd -o -d /home/jrms -m -c 'Jeremias' -g ${JRMS_GID} -u ${JRMS_UID} jrms \
 	&& chmod -v 0750 /home/jrms
 
-RUN printf 'umask %s\n' '027' >>/home/jrms/.profile
-RUN printf "export PS1='%s '\n" '\u@\h:\W\$' >>/home/jrms/.profile
+RUN printf 'umask %s\n' '0027' >>/home/jrms/.profile
 
 RUN echo 'jrms ALL=(ALL:ALL) NOPASSWD: ALL' >>/etc/sudoers.d/jrms
 RUN chmod -v 0440 /etc/sudoers.d/jrms
