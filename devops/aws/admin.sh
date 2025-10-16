@@ -1,8 +1,12 @@
 #!/bin/sh
 set -eu
+reponame=$(basename "${PWD}")
+workspace="${HOME}/Workspace/devops/${reponame}"
+mkdir -vp "${workspace}/docker/config/aws"
 exec docker run -it --rm -u admin \
-    --name admin-aws \
-    --hostname aws.local \
+    --name "admin-aws-${reponame}" \
+    --hostname "${reponame}.admin-aws.local" \
+    -v "${PWD}/docker/config/aws:/home/admin/.config/aws" \
     -v "${PWD}:/home/admin/src" \
     --workdir /home/admin/src \
     jcroots/admin-aws

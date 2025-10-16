@@ -1,9 +1,11 @@
 #!/bin/sh
 set -eu
-mkdir -vp ${PWD}/docker/config/gcloud
+reponame=$(basename "${PWD}")
+workspace="${HOME}/Workspace/devops/${reponame}"
+mkdir -vp "${workspace}/docker/config/gcloud"
 exec docker run -it --rm -u admin \
-    --name admin-gcloud \
-    --hostname gcloud.local \
+    --name "admin-gcloud-${reponame}" \
+    --hostname "${reponame}.admin-gcloud.local" \
     -v "${PWD}/docker/config/gcloud:/home/admin/.config/gcloud" \
     -v "${PWD}:/home/admin/src" \
     --workdir /home/admin/src \
