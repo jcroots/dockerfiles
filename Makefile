@@ -12,3 +12,7 @@ devops/gcloud:
 .PHONY: devops/aws
 devops/aws:
 	cd devops/aws && ./build.sh
+
+.PHONY: check
+check:
+	@shellcheck */*/*.sh
