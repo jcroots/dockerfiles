@@ -1,5 +1,5 @@
 .PHONY: all
-all: debian/forky devops/gcloud
+all: debian/forky devops/gcloud devops/aws
 
 .PHONY: debian/forky
 debian/forky:
@@ -8,3 +8,7 @@ debian/forky:
 .PHONY: devops/gcloud
 devops/gcloud:
 	cd devops/gcloud && ./build.sh
+
+.PHONY: devops/aws
+devops/aws:
+	cd devops/aws && ./build.sh
