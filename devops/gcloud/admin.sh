@@ -4,7 +4,7 @@ set -eu
 reponame=$(basename "${PWD}")
 workspace="${HOME}/Workspace/devops/${reponame}"
 
-devops_srcdir="${HOME}/Github/jcroots/devops/aws/opt/devops"
+devops_srcdir="${HOME}/Github/jcroots/devops/gcloud/opt/devops"
 
 test -d "${devops_srcdir}" || {
 	echo "${devops_srcdir}: dir not found" >&2
