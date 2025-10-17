@@ -23,28 +23,33 @@ RUN apt-get clean \
 		/var/cache/apt/archives/*.deb \
 		/var/cache/apt/*cache.bin
 
-ARG JRMS_UID=501
-ARG JRMS_GID=20
+ARG USER_NAME=jrms
+ARG USER_UID=501
+ARG USER_GID=20
 
-ENV JRMS_UID=${JRMS_UID}
-ENV JRMS_GID=${JRMS_GID}
+ENV USER_NAME=${USER_NAME}
+ENV USER_UID=${USER_UID}
+ENV USER_GID=${USER_GID}
 
-RUN groupadd -o -g ${JRMS_GID} jrms \
-	&& useradd -o -d /home/jrms -m -c 'Jeremias' -g ${JRMS_GID} -u ${JRMS_UID} jrms \
-	&& chmod -v 0750 /home/jrms
+RUN groupadd -o -g "${USER_GID}" "${USER_NAME}" \
+	&& useradd -o -d "/home/${USER_NAME}" -m -c "${USER_NAME}" \
+		-g "${USER_GID}" -u "${USER_UID}" "${USER_NAME}" \
+	&& chmod -v 0750 "/home/${USER_NAME}"
 
-RUN printf 'umask %s\n' '0027' >>/home/jrms/.profile
+RUN printf 'umask %s\n' '0027' >>"/home/${USER_NAME}/.profile"
 
-RUN echo 'jrms ALL=(ALL:ALL) NOPASSWD: ALL' >>/etc/sudoers.d/jrms
-RUN chmod -v 0440 /etc/sudoers.d/jrms
+RUN echo 'jrms ALL=(ALL:ALL) NOPASSWD: ALL' >>"/etc/sudoers.d/${USER_NAME}"
+RUN chmod -v 0440 "/etc/sudoers.d/${USER_NAME}"
 
 COPY user-login.sh /usr/local/bin/user-login.sh
 RUN chmod -v 0755 /usr/local/bin/user-login.sh
 
-USER jrms:jrms
-WORKDIR /home/jrms
+USER ${USER_NAME}:${USER_NAME}
+WORKDIR /home/${USER_NAME}
 
-ENV USER=jrms
-ENV HOME=/home/jrms
+ENV USER=${USER_NAME}
+ENV HOME=/home/${USER_NAME}
+
+RUN bash --version
 
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]
