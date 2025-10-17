@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 user=$(id -u -n)
-workspace="${HOME}/Workspace/debian"
+workspace="${HOME}/Workspace"
 mkdir -vp "${workspace}"
 exec docker run -it --rm -u "${user}" \
     --name "debian-forky-${user}" \
