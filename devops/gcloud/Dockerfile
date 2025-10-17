@@ -16,10 +16,11 @@ ENV ADMIN_UID=${ADMIN_UID}
 ENV ADMIN_GID=${ADMIN_GID}
 
 RUN groupadd -o -g ${ADMIN_GID} admin \
-	&& useradd -o -d /home/admin -m -c 'admin' -g ${ADMIN_GID} -u ${ADMIN_UID} admin \
+	&& useradd -o -d /home/admin -m -c 'admin' -g ${ADMIN_GID} \
+		-u ${ADMIN_UID} admin \
 	&& chmod -v 0750 /home/admin
 
-RUN printf 'umask %s\n' '0027' >>/home/admin/.profile
+RUN echo 'source /usr/local/etc/devops.bashrc' >>/home/admin/.profile
 
 USER admin:admin
 WORKDIR /home/admin
