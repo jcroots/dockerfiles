@@ -8,7 +8,7 @@ echo "Repo: ${reponame} (${reposlug})"
 workspace="${HOME}/Workspace/docker/${reponame}"
 echo "Workspace: ${workspace}"
 
-devops_srcdir="${HOME}/Github/jcroots/devops/aws/opt/devops"
+devops_srcdir="${HOME}/Github/jcroots/devops/opt/devops"
 
 test -d "${devops_srcdir}" || {
 	echo "${devops_srcdir}: dir not found" >&2

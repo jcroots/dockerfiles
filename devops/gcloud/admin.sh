@@ -8,7 +8,7 @@ echo "Repo: ${reponame} (${reposlug})"
 workspace="${HOME}/Workspace/docker/${reponame}"
 echo "Workspace: ${workspace}"
 
-devops_srcdir="${HOME}/Github/jcroots/devops/gcloud/opt/devops"
+devops_srcdir="${HOME}/Github/jcroots/devops/opt/devops"
 echo "Devops: ${devops_srcdir}"
 
 test -d "${devops_srcdir}" || {
