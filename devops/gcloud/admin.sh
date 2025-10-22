@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 set -eu
 
-reponame=$(basename "${PWD}")
+reponame=$(basename "$(dirname "${PWD}")")/$(basename "${PWD}")
+reposlug=$(echo "${reponame}" | tr '/' '-')
+echo "Repo: ${reponame} (${reposlug})"
+
 workspace="${HOME}/Workspace/devops/${reponame}"
+echo "Workspace: ${workspace}"
 
 devops_srcdir="${HOME}/Github/jcroots/devops/gcloud/opt/devops"
+echo "Devops: ${devops_srcdir}"
 
 test -d "${devops_srcdir}" || {
 	echo "${devops_srcdir}: dir not found" >&2
@@ -15,8 +20,8 @@ mkdir -vp "${workspace}"
 mkdir -vp "${workspace}/config/gcloud"
 
 exec docker run -it --rm -u admin \
-    --name "admin-gcloud-${reponame}" \
-    --hostname "${reponame}.admin-gcloud.local" \
+    --name "admin-gcloud-${reposlug}" \
+    --hostname "${reposlug}-gcloud.devops.local" \
     -e "TERM=${TERM}" \
     -v "${devops_srcdir}:/opt/devops:ro" \
     -v "${workspace}/config/gcloud:/home/admin/.config/gcloud" \
