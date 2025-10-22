@@ -5,7 +5,7 @@ reponame=$(basename "$(dirname "${PWD}")")/$(basename "${PWD}")
 reposlug=$(echo "${reponame}" | tr '/' '-')
 echo "Repo: ${reponame} (${reposlug})"
 
-workspace="${HOME}/Workspace/devops/${reponame}"
+workspace="${HOME}/Workspace/docker/${reponame}"
 echo "Workspace: ${workspace}"
 
 devops_srcdir="${HOME}/Github/jcroots/devops/gcloud/opt/devops"

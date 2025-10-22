@@ -1,8 +1,12 @@
 #!/bin/sh
 set -eu
 
-reponame=$(basename "${PWD}")
-workspace="${HOME}/Workspace/devops/${reponame}"
+reponame=$(basename "$(dirname "${PWD}")")/$(basename "${PWD}")
+reposlug=$(echo "${reponame}" | tr '/' '-')
+echo "Repo: ${reponame} (${reposlug})"
+
+workspace="${HOME}/Workspace/docker/${reponame}"
+echo "Workspace: ${workspace}"
 
 devops_srcdir="${HOME}/Github/jcroots/devops/aws/opt/devops"
 
@@ -15,8 +19,8 @@ mkdir -vp "${workspace}"
 mkdir -vp "${workspace}/config/aws"
 
 exec docker run -it --rm -u admin \
-    --name "admin-aws-${reponame}" \
-    --hostname "${reponame}.admin-aws.local" \
+    --name "admin-aws-${reposlug}" \
+    --hostname "${reposlug}.admin-aws.local" \
     -e "TERM=${TERM}" \
     -v "${devops_srcdir}:/opt/devops:ro" \
     -v "${workspace}/config/aws:/home/admin/.config/aws" \
