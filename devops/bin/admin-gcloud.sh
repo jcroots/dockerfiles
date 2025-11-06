@@ -6,5 +6,5 @@ test -x "${admin}" || {
 	echo "${admin}: not found or not executable" >&2
 	exit 9
 }
-echo "Run: ${admin}"
+echo "${admin}"
 exec "${admin}"
