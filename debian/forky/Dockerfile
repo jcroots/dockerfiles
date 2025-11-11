@@ -38,7 +38,7 @@ RUN groupadd -o -g "${USER_GID}" "${USER_NAME}" \
 
 RUN printf 'umask %s\n' '0027' >>"/home/${USER_NAME}/.profile"
 
-RUN echo 'jrms ALL=(ALL:ALL) NOPASSWD: ALL' >>"/etc/sudoers.d/${USER_NAME}"
+RUN echo "${USER_NAME} ALL=(ALL:ALL) NOPASSWD: ALL" >>"/etc/sudoers.d/${USER_NAME}"
 RUN chmod -v 0440 "/etc/sudoers.d/${USER_NAME}"
 
 COPY user-login.sh /usr/local/bin/user-login.sh
