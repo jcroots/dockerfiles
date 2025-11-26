@@ -1,7 +1,7 @@
 FROM ghcr.io/jcroots/devops/aws:latest
 
 LABEL maintainer="Jeremías Casteglione <jeremias.casteglione@rootstrap.com>"
-LABEL version="251016"
+LABEL version="251126"
 
 USER root:root
 WORKDIR /root
