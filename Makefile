@@ -1,6 +1,9 @@
 .PHONY: all
 all:
-	$(MAKE) -j2 debian/forky devops
+	$(MAKE) -j2 debian devops
+
+.PHONY: debian
+debian: debian/forky
 
 .PHONY: debian/forky
 debian/forky:
