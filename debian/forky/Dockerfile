@@ -11,12 +11,12 @@ ENV HOME=/root
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-ENV APT_INSTALL='bash bash-completion openssl ca-certificates media-types less wget sudo'
+COPY apt.install /tmp/apt.install
 
 RUN apt-get clean \
 	&& apt-get update -yy \
 	&& apt-get dist-upgrade -yy --purge \
-	&& apt-get install -yy --no-install-recommends ${APT_INSTALL} \
+	&& cat /tmp/apt.install | xargs apt-get install -yy --no-install-recommends \
 	&& apt-get clean \
 	&& apt-get autoremove -yy --purge \
 	&& rm -rf /var/lib/apt/lists/* \
