@@ -21,10 +21,10 @@ echo "  ${reponame} (${reposlug})"
 
 exec docker run -it --rm -u admin \
     --name "admin-aws-${reposlug}" \
-    --hostname "${reposlug}.admin-aws.local" \
+    --hostname "${reposlug}-aws.devops.local" \
     -e "TERM=${TERM}" \
     -v "${devops_srcdir}:/opt/devops:ro" \
-    -v "${workspace}/config/aws:/home/admin/.config/aws" \
+    -v "${workspace}/config/aws:/home/admin/.aws" \
     -v "${workspace}:/home/admin/workspace" \
     -v "${PWD}:/home/admin/src" \
     --workdir /home/admin/src \
