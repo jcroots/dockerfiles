@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	$(MAKE) -j2 debian devops
+	$(MAKE) -j2 debian devops brew
 
 .PHONY: debian
 debian: debian/forky
@@ -21,6 +21,10 @@ devops/gcloud:
 devops/aws:
 	cd devops/aws && ./build.sh
 
+.PHONY: brew
+brew: debian/forky
+	cd brew && ./build.sh
+
 .PHONY: check
 check:
-	@shellcheck */*/*.sh
+	@find . -type f -name '*.sh' | xargs shellcheck
