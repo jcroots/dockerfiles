@@ -1,6 +1,11 @@
 .PHONY: all
 all:
-	$(MAKE) -j2 debian devops brew
+	$(MAKE) -j3 debian devops
+	$(MAKE) brew-all
+
+.PHONY: prune
+prune:
+	docker system prune --all --force
 
 .PHONY: debian
 debian: debian/forky
@@ -21,9 +26,17 @@ devops/gcloud:
 devops/aws:
 	cd devops/aws && ./build.sh
 
+.PHONY: brew-all
+brew-all: brew
+	$(MAKE) claude
+
 .PHONY: brew
 brew: debian/forky
 	cd brew && ./build.sh
+
+.PHONY: claude
+claude: brew
+	cd claude && ./build.sh
 
 .PHONY: check
 check:
