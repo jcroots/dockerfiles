@@ -5,7 +5,7 @@ all:
 
 .PHONY: prune
 prune:
-	docker system prune --all --force
+	docker system prune --force
 
 .PHONY: debian
 debian: debian/forky
