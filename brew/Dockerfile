@@ -1,7 +1,7 @@
 FROM jcroots/forky
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260227"
+LABEL version="260319"
 
 USER root:root
 WORKDIR /root
