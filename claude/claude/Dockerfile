@@ -38,4 +38,9 @@ RUN brew update \
 	&& brew install claude-code \
 	&& brew cleanup --prune=all
 
+RUN git config --global alias.st status \
+	&& git config --global alias.push '!echo "git push is DISABLED" >&2; exit 1' \
+	&& git config --global alias.pull '!echo "git pull is DISABLED" >&2; exit 1' \
+	&& git config --global alias.commit '!echo "git commit is DISABLED" >&2; exit 1'
+
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]
