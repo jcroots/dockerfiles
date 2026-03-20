@@ -3,8 +3,9 @@
 upgrade.py - Check and update hardcoded software versions in installation scripts.
 
 Targets:
-  - Terraform         -> claude/claude-devops/terraform-install.sh
-  - Debian forky slim -> debian/forky/Dockerfile
+  - Terraform            -> claude/claude-devops/terraform-install.sh
+  - Debian forky slim    -> debian/forky/Dockerfile
+  - Debian bookworm slim -> debian/bookworm/Dockerfile
 
 Usage:
   python3 upgrade.py            # check and update
@@ -20,8 +21,9 @@ from pathlib import Path
 
 WORKSPACE = Path(__file__).parent
 
-TERRAFORM_SCRIPT = WORKSPACE / "claude/claude-devops/terraform-install.sh"
-FORKY_DOCKERFILE = WORKSPACE / "debian/forky/Dockerfile"
+TERRAFORM_SCRIPT    = WORKSPACE / "claude/claude-devops/terraform-install.sh"
+FORKY_DOCKERFILE    = WORKSPACE / "debian/forky/Dockerfile"
+BOOKWORM_DOCKERFILE = WORKSPACE / "debian/bookworm/Dockerfile"
 
 
 # ---------------------------------------------------------------------------
@@ -65,6 +67,25 @@ def get_latest_debian_forky_slim():
         raise RuntimeError("No forky-YYYYMMDD-slim tags found on Docker Hub")
     candidates.sort(key=lambda x: x[0], reverse=True)
     return candidates[0][1]  # e.g. "forky-20260223-slim"
+
+
+def get_latest_debian_bookworm_slim():
+    """Return the latest bookworm-YYYYMMDD-slim tag from Docker Hub."""
+    url = (
+        "https://hub.docker.com/v2/repositories/library/debian/tags"
+        "?name=bookworm-&ordering=last_updated&page_size=100"
+    )
+    data = fetch_json(url)
+    pattern = re.compile(r"^bookworm-(\d{8})-slim$")
+    candidates = []
+    for result in data.get("results", []):
+        m = pattern.match(result["name"])
+        if m:
+            candidates.append((m.group(1), result["name"]))  # (date_str, full_tag)
+    if not candidates:
+        raise RuntimeError("No bookworm-YYYYMMDD-slim tags found on Docker Hub")
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    return candidates[0][1]  # e.g. "bookworm-20260316-slim"
 
 
 # ---------------------------------------------------------------------------
@@ -136,6 +157,19 @@ def run_debian_forky(dry_run):
     )
 
 
+def run_debian_bookworm(dry_run):
+    print("[debian bookworm slim]")
+    current = read_current(BOOKWORM_DOCKERFILE, r"FROM debian:(\S+)")
+    latest  = get_latest_debian_bookworm_slim()
+    return check(
+        "debian", current, latest,
+        BOOKWORM_DOCKERFILE,
+        r"FROM debian:\S+",
+        f"FROM debian:{latest}",
+        dry_run,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -143,6 +177,7 @@ def run_debian_forky(dry_run):
 CHECKS = [
     run_terraform,
     run_debian_forky,
+    run_debian_bookworm,
 ]
 
 
