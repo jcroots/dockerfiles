@@ -1,10 +1,12 @@
 FROM jcroots/forky
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260319"
+LABEL version="260320"
 
 USER root:root
 WORKDIR /root
+
+ENV JCROOTS_UPGRADE=260320.1
 
 ENV USER=root
 ENV HOME=/root

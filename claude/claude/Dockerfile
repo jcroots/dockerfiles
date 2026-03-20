@@ -3,6 +3,8 @@ FROM jcroots/brew
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
 LABEL version="260320"
 
+ENV JCROOTS_UPGRADE=260320.1
+
 USER root:root
 WORKDIR /root
 
@@ -31,8 +33,6 @@ WORKDIR /home/${USER_NAME}
 
 ENV USER=${USER_NAME}
 ENV HOME=/home/${USER_NAME}
-
-ENV __CLAUDE_UPGRADE=260320
 
 RUN brew update \
 	&& brew install claude-code \
