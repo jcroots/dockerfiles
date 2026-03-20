@@ -1,7 +1,10 @@
 .PHONY: all
 all:
-	$(MAKE) -j2 debian devops
-	$(MAKE) brew-all
+	$(MAKE) -j2 debian
+	$(MAKE) -j2 devops/aws devops/gcloud
+	$(MAKE) brew
+	$(MAKE) claude
+	$(MAKE) claude-devops
 
 # devops
 
@@ -29,11 +32,6 @@ debian/forky:
 
 # brew
 
-.PHONY: brew-all
-brew-all:
-	$(MAKE) brew
-	$(MAKE) claude
-
 .PHONY: brew
 brew:
 	cd brew && ./build.sh
@@ -43,6 +41,10 @@ brew:
 .PHONY: claude
 claude:
 	cd claude/claude && ./build.sh
+
+.PHONY: claude-devops
+claude-devops:
+	cd claude/claude-devops && ./build.sh
 
 # utils
 

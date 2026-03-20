@@ -1,7 +1,7 @@
-FROM jcroots/brew
+FROM jcroots/claude
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260320"
+LABEL version="260319"
 
 USER root:root
 WORKDIR /root
@@ -22,6 +22,9 @@ RUN apt-get clean \
 		/var/cache/apt/archives/*.deb \
 		/var/cache/apt/*cache.bin
 
+COPY --chmod=755 terraform-install.sh /tmp/terraform-install.sh
+RUN /tmp/terraform-install.sh
+
 ARG USER_NAME=jcroots
 
 ENV USER_NAME=${USER_NAME}
@@ -32,10 +35,11 @@ WORKDIR /home/${USER_NAME}
 ENV USER=${USER_NAME}
 ENV HOME=/home/${USER_NAME}
 
-ENV __CLAUDE_UPGRADE=260320
+COPY --chmod=644 brew.install /tmp/brew.install
 
 RUN brew update \
-	&& brew install claude-code \
+	&& cat /tmp/brew.install | xargs brew install \
+	&& brew autoremove \
 	&& brew cleanup --prune=all
 
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]
