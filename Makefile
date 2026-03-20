@@ -1,6 +1,6 @@
 .PHONY: all
 all:
-	$(MAKE) -j2 debian
+	$(MAKE) -j2 debian/forky debian/bookworm
 	$(MAKE) -j2 devops/aws devops/gcloud
 	$(MAKE) brew
 	$(MAKE) claude
@@ -24,7 +24,11 @@ devops/aws:
 
 .PHONY: debian
 debian:
-	$(MAKE) debian/forky
+	$(MAKE) -j2 debian/forky debian/bookworm
+
+.PHONY: debian/bookworm
+debian/bookworm:
+	cd debian/bookworm && ./build.sh
 
 .PHONY: debian/forky
 debian/forky:
