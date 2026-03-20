@@ -5,6 +5,11 @@ user=$(id -u -n)
 
 workspace="${HOME}/Workspace"
 github="${HOME}/Github"
+temp="${HOME}/Temp"
+
+install -v -d -m 0750 "${workspace}"
+install -v -d -m 0750 "${github}"
+install -v -d -m 0750 "${temp}"
 
 cfgdir="${HOME}/Workspace/docker/dockerfiles/claude"
 install -v -d -m 0750 "${cfgdir}"
@@ -22,5 +27,6 @@ exec docker run -it --rm -u "${user}" \
 	-v "${cfgdir}/claude.json:/home/${user}/.claude.json" \
 	-v "${workspace}:/home/${user}/workspace:ro" \
 	-v "${github}:/home/${user}/github" \
+	-v "${temp}:/home/${user}/temp" \
 	--workdir "/home/${user}" \
 	jcroots/claude-devops
