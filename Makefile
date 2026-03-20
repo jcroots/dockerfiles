@@ -42,6 +42,11 @@ brew:
 
 # claude
 
+.PHONY: claude-all
+claude-all:
+	$(MAKE) claude
+	$(MAKE) claude-devops
+
 .PHONY: claude
 claude:
 	cd claude/claude && ./build.sh
