@@ -59,3 +59,5 @@ prune:
 .PHONY: check
 check:
 	@find . -type f -name '*.sh' | xargs shellcheck
+	@shellcheck -s bash brew/bashrc.brew
+	@python3 -m py_compile upgrade.py && rm -rf __pycache__
