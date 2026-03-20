@@ -38,9 +38,11 @@ brew-all:
 brew:
 	cd brew && ./build.sh
 
+# claude
+
 .PHONY: claude
 claude:
-	cd claude && ./build.sh
+	cd claude/claude && ./build.sh
 
 # utils
 
