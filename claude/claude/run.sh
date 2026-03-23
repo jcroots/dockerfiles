@@ -26,7 +26,7 @@ exec docker run -it --rm -u "${user}" \
 	-v "${cfgdir}/config:/home/${user}/.claude" \
 	-v "${cfgdir}/claude.json:/home/${user}/.claude.json" \
 	-v "${workspace}:/home/${user}/workspace:ro" \
-	-v "${github}:/home/${user}/github:ro" \
+	-v "${github}/jcroots:/home/${user}/github/jcroots" \
 	-v "${temp}:/home/${user}/temp" \
 	--workdir "/home/${user}" \
 	jcroots/claude
