@@ -6,10 +6,10 @@ Targets:
   - Terraform            -> claude/claude-devops/terraform-install.sh
   - Debian forky slim    -> debian/forky/Dockerfile
   - Debian bookworm slim -> debian/bookworm/Dockerfile
+  - devops release       -> devops/aws/Dockerfile, devops/gcloud/Dockerfile
 
 Usage:
-  python3 upgrade.py            # check and update
-  python3 upgrade.py --dry-run  # check only, no file changes
+  python3 upgrade.py --devops 260320.1
 """
 
 import json
@@ -24,6 +24,8 @@ WORKSPACE = Path(__file__).parent
 TERRAFORM_SCRIPT    = WORKSPACE / "claude/claude-devops/terraform-install.sh"
 FORKY_DOCKERFILE    = WORKSPACE / "debian/forky/Dockerfile"
 BOOKWORM_DOCKERFILE = WORKSPACE / "debian/bookworm/Dockerfile"
+DEVOPS_AWS_DOCKERFILE    = WORKSPACE / "devops/aws/Dockerfile"
+DEVOPS_GCLOUD_DOCKERFILE = WORKSPACE / "devops/gcloud/Dockerfile"
 
 
 # ---------------------------------------------------------------------------
@@ -101,16 +103,15 @@ def read_current(path, pattern):
     return m.group(1)
 
 
-def update_file(path, pattern, replacement, dry_run=False):
-    """Replace first regex match in file. Returns True if content would change."""
+def update_file(path, pattern, replacement):
+    """Replace first regex match in file. Returns True if content changed."""
     content = path.read_text()
     new_content, count = re.subn(pattern, replacement, content, count=1)
     if count == 0:
         raise RuntimeError(f"Pattern {pattern!r} not found in {path}")
     if new_content == content:
         return False
-    if not dry_run:
-        path.write_text(new_content)
+    path.write_text(new_content)
     return True
 
 
@@ -118,20 +119,18 @@ def update_file(path, pattern, replacement, dry_run=False):
 # Per-tool check + update logic
 # ---------------------------------------------------------------------------
 
-def check(name, current, latest, path, search_pattern, replacement, dry_run):
+def check(name, current, latest, path, search_pattern, replacement):
     if current == latest:
         print(f"  ok        {current}")
         return False
     print(f"  outdated  {current} -> {latest}")
-    changed = update_file(path, search_pattern, replacement, dry_run)
-    if changed and not dry_run:
+    changed = update_file(path, search_pattern, replacement)
+    if changed:
         print(f"  updated   {path.relative_to(WORKSPACE)}")
-    elif changed and dry_run:
-        print(f"  would update {path.relative_to(WORKSPACE)}")
     return changed
 
 
-def run_terraform(dry_run):
+def run_terraform():
     print("[terraform]")
     current = read_current(TERRAFORM_SCRIPT, r"TF_VERSION='([^']+)'")
     latest  = get_latest_terraform()
@@ -140,11 +139,10 @@ def run_terraform(dry_run):
         TERRAFORM_SCRIPT,
         r"TF_VERSION='[^']+'",
         f"TF_VERSION='{latest}'",
-        dry_run,
     )
 
 
-def run_debian_forky(dry_run):
+def run_debian_forky():
     print("[debian forky slim]")
     current = read_current(FORKY_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_forky_slim()
@@ -153,11 +151,10 @@ def run_debian_forky(dry_run):
         FORKY_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
-        dry_run,
     )
 
 
-def run_debian_bookworm(dry_run):
+def run_debian_bookworm():
     print("[debian bookworm slim]")
     current = read_current(BOOKWORM_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_bookworm_slim()
@@ -166,8 +163,37 @@ def run_debian_bookworm(dry_run):
         BOOKWORM_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
-        dry_run,
     )
+
+
+def run_devops(version):
+    any_updated = False
+    for path, image in [
+        (DEVOPS_AWS_DOCKERFILE,    "aws"),
+        (DEVOPS_GCLOUD_DOCKERFILE, "gcloud"),
+    ]:
+        print(f"[devops {image}]")
+        current = read_current(path, rf"FROM ghcr\.io/jcroots/devops/{image}-(\S+):latest")
+        changed_from = update_file(
+            path,
+            rf"FROM ghcr\.io/jcroots/devops/{image}-\S+:latest",
+            f"FROM ghcr.io/jcroots/devops/{image}-{version}:latest",
+        )
+        changed_env = update_file(
+            path,
+            r"ENV JCROOTS_UPGRADE=\S+",
+            f"ENV JCROOTS_UPGRADE={version}",
+        )
+        changed = changed_from or changed_env
+        if current == version:
+            print(f"  ok        {current}")
+        else:
+            print(f"  outdated  {current} -> {version}")
+            if changed:
+                print(f"  updated   {path.relative_to(WORKSPACE)}")
+        any_updated = any_updated or changed
+        print()
+    return any_updated
 
 
 # ---------------------------------------------------------------------------
@@ -182,16 +208,31 @@ CHECKS = [
 
 
 def main():
-    dry_run = "--dry-run" in sys.argv
-    if dry_run:
-        print("=== DRY-run mode: no files will be modified ===\n")
+    args = sys.argv[1:]
+
+    if "--devops" not in args:
+        print("ERROR: --devops VERSION is required", file=sys.stderr)
+        sys.exit(1)
+
+    idx = args.index("--devops")
+    if idx + 1 >= len(args) or args[idx + 1].startswith("--"):
+        print("ERROR: --devops requires a version argument", file=sys.stderr)
+        sys.exit(1)
+    devops_version = args[idx + 1]
 
     any_updated = False
     any_error   = False
 
+    try:
+        updated = run_devops(devops_version)
+        any_updated = any_updated or updated
+    except Exception as e:
+        print(f"  ERROR: {e}")
+        any_error = True
+
     for fn in CHECKS:
         try:
-            updated = fn(dry_run)
+            updated = fn()
             any_updated = any_updated or updated
         except Exception as e:
             print(f"  ERROR: {e}")
@@ -201,8 +242,6 @@ def main():
     if any_error:
         print("Finished with errors.")
         sys.exit(1)
-    elif any_updated and dry_run:
-        print("Updates available (dry-run, no files changed).")
     elif any_updated:
         print("All updates applied.")
     else:

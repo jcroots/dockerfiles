@@ -1,9 +1,9 @@
-FROM ghcr.io/jcroots/devops/gcloud-260320.1:latest
+FROM ghcr.io/jcroots/devops/gcloud-260323:latest
 
 LABEL maintainer="Jeremías Casteglione <jeremias.casteglione@rootstrap.com>"
 LABEL version="260320"
 
-ENV JCROOTS_UPGRADE=260320.1
+ENV JCROOTS_UPGRADE=260323
 
 USER root:root
 WORKDIR /root
