@@ -4,10 +4,11 @@ set -eu
 reponame=$(basename "$(dirname "${PWD}")")/$(basename "${PWD}")
 reposlug=$(echo "${reponame}" | tr '/' '-')
 
-workspace="${HOME}/Workspace/docker/${reponame}"
-echo "${workspace}"
+workspace="${HOME}/Docker/devops/${reponame}"
+echo "Workspace: ${workspace}"
 
 devops_srcdir="${HOME}/Github/jcroots/devops/opt/devops"
+echo "Devops: ${devops_srcdir}"
 
 test -d "${devops_srcdir}" || {
 	echo "${devops_srcdir}: dir not found" >&2
@@ -17,7 +18,7 @@ test -d "${devops_srcdir}" || {
 mkdir -vp "${workspace}"
 mkdir -vp "${workspace}/config/aws"
 
-echo "  ${reponame} (${reposlug})"
+echo "Admin: aws ${reponame}"
 
 exec docker run -it --rm -u admin \
     --name "admin-aws-${reposlug}" \
