@@ -1,7 +1,9 @@
 FROM jcroots/claude
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260319"
+LABEL version="260323"
+
+ENV JCROOTS_UPGRADE=260323
 
 USER root:root
 WORKDIR /root
@@ -20,7 +22,8 @@ RUN apt-get clean \
 	&& apt-get autoremove -yy --purge \
 	&& rm -rf /var/lib/apt/lists/* \
 		/var/cache/apt/archives/*.deb \
-		/var/cache/apt/*cache.bin
+		/var/cache/apt/*cache.bin \
+		/tmp/apt.install
 
 COPY --chmod=755 terraform-install.sh /tmp/terraform-install.sh
 RUN /tmp/terraform-install.sh
@@ -29,17 +32,19 @@ ARG USER_NAME=jcroots
 
 ENV USER_NAME=${USER_NAME}
 
+COPY --chmod=644 brew.install /tmp/brew.install
+RUN chown ${USER_NAME}:${USER_NAME} /tmp/brew.install
+
 USER ${USER_NAME}:${USER_NAME}
 WORKDIR /home/${USER_NAME}
 
 ENV USER=${USER_NAME}
 ENV HOME=/home/${USER_NAME}
 
-COPY --chmod=644 brew.install /tmp/brew.install
-
 RUN brew update \
 	&& cat /tmp/brew.install | xargs brew install \
 	&& brew autoremove \
-	&& brew cleanup --prune=all
+	&& brew cleanup --prune=all \
+	&& rm -vf /tmp/brew.install
 
 ENTRYPOINT ["/usr/local/bin/user-login.sh"]
