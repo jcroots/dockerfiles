@@ -11,21 +11,21 @@ install -v -d -m 0750 "${workspace}"
 install -v -d -m 0750 "${github}"
 install -v -d -m 0750 "${temp}"
 
-cfgdir="${HOME}/Workspace/docker/dockerfiles/claude"
-install -v -d -m 0750 "${cfgdir}"
-install -v -d -m 0750 "${cfgdir}/config"
+datadir="${HOME}/Docker/dockerfiles/claude"
+install -v -d -m 0750 "${datadir}"
+install -v -d -m 0750 "${datadir}/config"
 
-if ! test -s "${cfgdir}/claude.json"; then
-	touch "${cfgdir}/claude.json"
+if ! test -s "${datadir}/claude.json"; then
+	touch "${datadir}/claude.json"
 fi
 
 exec docker run -it --rm -u "${user}" \
 	--name "claude-${user}" \
 	--hostname "claude.debian.local" \
 	-e "TERM=${TERM}" \
-	-v "${cfgdir}/config:/home/${user}/.claude" \
-	-v "${cfgdir}/claude.json:/home/${user}/.claude.json" \
-	-v "${workspace}:/home/${user}/workspace:ro" \
+	-v "${datadir}/config:/home/${user}/.claude" \
+	-v "${datadir}/claude.json:/home/${user}/.claude.json" \
+	-v "${workspace}:/home/${user}/workspace" \
 	-v "${github}/jcroots:/home/${user}/github/jcroots" \
 	-v "${temp}:/home/${user}/temp" \
 	--workdir "/home/${user}" \
