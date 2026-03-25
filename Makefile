@@ -44,6 +44,7 @@ brew:
 
 .PHONY: claude-all
 claude-all:
+	$(MAKE) brew
 	$(MAKE) claude
 	$(MAKE) claude-devops
 

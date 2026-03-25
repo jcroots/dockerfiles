@@ -1,9 +1,9 @@
 FROM jcroots/claude
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260323"
+LABEL version="260325"
 
-ENV JCROOTS_UPGRADE=260323
+ENV JCROOTS_UPGRADE=260325
 
 USER root:root
 WORKDIR /root
