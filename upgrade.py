@@ -9,7 +9,8 @@ Targets:
   - devops release       -> devops/aws/Dockerfile, devops/gcloud/Dockerfile
 
 Usage:
-  python3 upgrade.py --devops 260320.1
+  python3 upgrade.py                   # skip devops, upgrade everything else
+  python3 upgrade.py --devops 260320.1 # also upgrade devops to the given version
 """
 
 import json
@@ -210,25 +211,26 @@ CHECKS = [
 def main():
     args = sys.argv[1:]
 
-    if "--devops" not in args:
-        print("ERROR: --devops VERSION is required", file=sys.stderr)
-        sys.exit(1)
-
-    idx = args.index("--devops")
-    if idx + 1 >= len(args) or args[idx + 1].startswith("--"):
-        print("ERROR: --devops requires a version argument", file=sys.stderr)
-        sys.exit(1)
-    devops_version = args[idx + 1]
+    devops_version = None
+    if "--devops" in args:
+        idx = args.index("--devops")
+        if idx + 1 >= len(args) or args[idx + 1].startswith("--"):
+            print("ERROR: --devops requires a version argument", file=sys.stderr)
+            sys.exit(1)
+        devops_version = args[idx + 1]
 
     any_updated = False
     any_error   = False
 
-    try:
-        updated = run_devops(devops_version)
-        any_updated = any_updated or updated
-    except Exception as e:
-        print(f"  ERROR: {e}")
-        any_error = True
+    if devops_version:
+        try:
+            updated = run_devops(devops_version)
+            any_updated = any_updated or updated
+        except Exception as e:
+            print(f"  ERROR: {e}")
+            any_error = True
+    else:
+        print("[devops] skipped (no --devops VERSION provided)\n")
 
     for fn in CHECKS:
         try:
