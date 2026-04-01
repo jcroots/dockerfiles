@@ -1,9 +1,9 @@
 FROM jcroots/brew
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260325"
+LABEL version="260401"
 
-ENV JCROOTS_UPGRADE=260325
+ENV JCROOTS_UPGRADE=260401
 
 USER root:root
 WORKDIR /root
