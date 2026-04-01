@@ -3,7 +3,7 @@ set -eux
 
 # Check https://releases.hashicorp.com/terraform/
 
-TF_VERSION='1.14.7'
+TF_VERSION='1.14.8'
 
 ARCH=$(dpkg --print-architecture)
 
