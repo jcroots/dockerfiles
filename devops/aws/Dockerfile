@@ -1,9 +1,9 @@
-FROM ghcr.io/jcroots/devops/aws-260323:latest
+FROM ghcr.io/jcroots/devops/aws-260402:latest
 
 LABEL maintainer="Jeremías Casteglione <jeremias.casteglione@rootstrap.com>"
-LABEL version="260320"
+LABEL version="260402"
 
-ENV JCROOTS_UPGRADE=260323
+ENV JCROOTS_UPGRADE=260402
 
 USER root:root
 WORKDIR /root
