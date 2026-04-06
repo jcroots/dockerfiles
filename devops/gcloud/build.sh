@@ -4,7 +4,7 @@ set -eu
 _UID=$(id -u)
 _GID=$(id -g)
 
-exec docker build --rm --pull \
+exec docker build --rm \
     --build-arg "ADMIN_UID=${_UID}" \
     --build-arg "ADMIN_GID=${_GID}" \
     -t jcroots/admin-gcloud .
