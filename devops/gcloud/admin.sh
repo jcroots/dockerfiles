@@ -15,14 +15,6 @@ echo "Claude: ${claude}"
 workspace="${HOME}/Docker/devops/${reponame}"
 echo "Workspace: ${workspace}"
 
-devops_srcdir="${HOME}/Github/jcroots/devops/opt/devops"
-echo "Devops: ${devops_srcdir}"
-
-test -d "${devops_srcdir}" || {
-	echo "${devops_srcdir}: dir not found" >&2
-	exit 9
-}
-
 mkdir -vp "${workspace}"
 mkdir -vp "${workspace}/config/gcloud"
 
@@ -34,7 +26,6 @@ exec docker run -it --rm -u admin \
     -e "TERM=${TERM}" \
 	-v "${claude}/config:/home/admin/.claude" \
 	-v "${claude}/claude.json:/home/admin/.claude.json" \
-    -v "${devops_srcdir}:/opt/devops:ro" \
     -v "${workspace}/config/gcloud:/home/admin/.config/gcloud" \
     -v "${workspace}:/home/admin/workspace" \
     -v "${PWD}:/home/admin/src" \
