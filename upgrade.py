@@ -18,6 +18,7 @@ import re
 import sys
 import urllib.error
 import urllib.request
+from datetime import date
 from pathlib import Path
 
 WORKSPACE = Path(__file__).parent
@@ -116,6 +117,35 @@ def update_file(path, pattern, replacement):
     return True
 
 
+def today_yymmdd():
+    """Return today's date as YYMMDD string."""
+    return date.today().strftime("%y%m%d")
+
+
+def update_version_label(path, version):
+    """Update LABEL version in a Dockerfile."""
+    return update_file(path, r'LABEL version="[^"]*"', f'LABEL version="{version}"')
+
+
+def update_or_add_jcroots_upgrade(path, version):
+    """Update ENV JCROOTS_UPGRADE in a Dockerfile, or add it after LABEL version."""
+    content = path.read_text()
+    if re.search(r"ENV JCROOTS_UPGRADE=\S+", content):
+        return update_file(path, r"ENV JCROOTS_UPGRADE=\S+", f"ENV JCROOTS_UPGRADE={version}")
+    new_content, count = re.subn(
+        r'(LABEL version="[^"]*")',
+        rf'\1\nENV JCROOTS_UPGRADE={version}',
+        content,
+        count=1,
+    )
+    if count == 0:
+        raise RuntimeError(f"LABEL version not found in {path}")
+    if new_content == content:
+        return False
+    path.write_text(new_content)
+    return True
+
+
 # ---------------------------------------------------------------------------
 # Per-tool check + update logic
 # ---------------------------------------------------------------------------
@@ -147,24 +177,34 @@ def run_debian_forky():
     print("[debian forky slim]")
     current = read_current(FORKY_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_forky_slim()
-    return check(
+    changed = check(
         "debian", current, latest,
         FORKY_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
     )
+    if changed:
+        version = today_yymmdd()
+        update_version_label(FORKY_DOCKERFILE, version)
+        update_or_add_jcroots_upgrade(FORKY_DOCKERFILE, version)
+    return changed
 
 
 def run_debian_bookworm():
     print("[debian bookworm slim]")
     current = read_current(BOOKWORM_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_bookworm_slim()
-    return check(
+    changed = check(
         "debian", current, latest,
         BOOKWORM_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
     )
+    if changed:
+        version = today_yymmdd()
+        update_version_label(BOOKWORM_DOCKERFILE, version)
+        update_or_add_jcroots_upgrade(BOOKWORM_DOCKERFILE, version)
+    return changed
 
 
 def run_devops(version):
@@ -185,7 +225,8 @@ def run_devops(version):
             r"ENV JCROOTS_UPGRADE=\S+",
             f"ENV JCROOTS_UPGRADE={version}",
         )
-        changed = changed_from or changed_env
+        changed_label = update_version_label(path, today_yymmdd())
+        changed = changed_from or changed_env or changed_label
         if current == version:
             print(f"  ok        {current}")
         else:

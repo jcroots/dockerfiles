@@ -1,7 +1,9 @@
-FROM debian:bookworm-20260316-slim
+FROM debian:bookworm-20260406-slim
 
 LABEL maintainer="Jeremías Casteglione <jeremias.rootstrap@gmail.com>"
-LABEL version="260320"
+LABEL version="260407"
+
+ENV JCROOTS_UPGRADE=260407
 
 USER root:root
 WORKDIR /root
