@@ -46,17 +46,19 @@ def has_modifications(repo_path):
     return bool(git(repo_path, "status", "--porcelain"))
 
 
-def process_repo(repo_path, name, make_target):
+def process_repo(repo_path, name, make_target, dry_run):
     """Run upgrade.py and optionally make if files changed."""
     print(f"\n{'=' * 60}")
     print(f"  Upgrading {name}")
     print(f"{'=' * 60}\n")
 
-    subprocess.run(
-        [sys.executable, "upgrade.py"],
-        cwd=repo_path,
-        check=True,
-    )
+    cmd = [sys.executable, "upgrade.py"]
+    if dry_run:
+        cmd.append("--dry-run")
+    subprocess.run(cmd, cwd=repo_path, check=True)
+
+    if dry_run:
+        return
 
     if has_modifications(repo_path):
         print(f"\n  Building {name} (make {make_target})...\n")
@@ -70,7 +72,11 @@ def process_repo(repo_path, name, make_target):
 
 
 def main():
+    dry_run = "--dry-run" in sys.argv
     all_repos = DEPENDENCY_REPOS + [SELF_REPO]
+
+    if dry_run:
+        print("=== DRY-RUN mode: no files will be modified, no builds will run ===\n")
 
     # Phase 1: pre-flight checks
     print("Checking all repositories...\n")
@@ -83,13 +89,14 @@ def main():
     # Phase 2: dependency repos
     for repo_config in DEPENDENCY_REPOS:
         name = repo_config["name"]
-        process_repo(PARENT_DIR / name, name, repo_config["make_target"])
+        process_repo(PARENT_DIR / name, name, repo_config["make_target"], dry_run)
 
     # Phase 3: this repo
     process_repo(
         PARENT_DIR / SELF_REPO["name"],
         SELF_REPO["name"],
         SELF_REPO["make_target"],
+        dry_run,
     )
 
     print(f"\n{'=' * 60}")

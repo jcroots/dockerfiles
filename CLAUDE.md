@@ -39,6 +39,7 @@ Individual images: `cd <dir> && ./build.sh` (each build.sh captures current user
 
 ```bash
 python3 upgrade.py                        # Auto-upgrade Terraform + Debian base tags
+python3 upgrade.py --dry-run              # Check only, no file changes
 ```
 
 Updates `FROM` tags, `LABEL version=`, and `ENV JCROOTS_UPGRADE=` fields in the debian and terraform targets. Version labels use `YYMMDD` format.
@@ -47,6 +48,7 @@ Updates `FROM` tags, `LABEL version=`, and `ENV JCROOTS_UPGRADE=` fields in the 
 
 ```bash
 python3 upgrade-all.py            # upgrade all repos (or: make upgrade-all)
+python3 upgrade-all.py --dry-run  # check only, no file changes or builds
 ```
 
 Pre-flight checks verify all repos are clean and on `main` before proceeding. Runs `upgrade.py` + `make` (if modified) on each dependency repo first, then on `dockerfiles`.
