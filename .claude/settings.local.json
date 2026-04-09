@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(python3 -m py_compile upgrade-all.py)",
-      "Bash(python3 -m py_compile upgrade.py)"
+      "Bash(python3 -m py_compile upgrade.py)",
+      "Bash(make check:*)"
     ]
   }
 }

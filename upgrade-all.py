@@ -47,7 +47,7 @@ def has_modifications(repo_path):
 
 
 def process_repo(repo_path, name, make_target, dry_run):
-    """Run upgrade.py and optionally make if files changed."""
+    """Run upgrade.py and optionally make if files changed. Returns True if modified."""
     print(f"\n{'=' * 60}")
     print(f"  Upgrading {name}")
     print(f"{'=' * 60}\n")
@@ -58,7 +58,7 @@ def process_repo(repo_path, name, make_target, dry_run):
     subprocess.run(cmd, cwd=repo_path, check=True)
 
     if dry_run:
-        return
+        return False
 
     if has_modifications(repo_path):
         print(f"\n  Building {name} (make {make_target})...\n")
@@ -67,8 +67,10 @@ def process_repo(repo_path, name, make_target, dry_run):
             cwd=repo_path,
             check=True,
         )
-    else:
-        print(f"\n  No changes in {name}, skipping build.")
+        return True
+
+    print(f"\n  No changes in {name}, skipping build.")
+    return False
 
 
 def main():
@@ -87,21 +89,31 @@ def main():
         print(f"  {name}: ok")
 
     # Phase 2: dependency repos
+    modified = []
     for repo_config in DEPENDENCY_REPOS:
         name = repo_config["name"]
-        process_repo(PARENT_DIR / name, name, repo_config["make_target"], dry_run)
+        if process_repo(PARENT_DIR / name, name, repo_config["make_target"], dry_run):
+            modified.append(name)
 
     # Phase 3: this repo
-    process_repo(
+    if process_repo(
         PARENT_DIR / SELF_REPO["name"],
         SELF_REPO["name"],
         SELF_REPO["make_target"],
         dry_run,
-    )
+    ):
+        modified.append(SELF_REPO["name"])
 
     print(f"\n{'=' * 60}")
     print("  All upgrades complete.")
     print(f"{'=' * 60}")
+
+    if modified:
+        print(f"\n  Repos with upgrades to commit, push, and release:")
+        for name in modified:
+            print(f"    - {name}")
+    else:
+        print(f"\n  No repos were modified.")
 
 
 if __name__ == "__main__":
