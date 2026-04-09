@@ -44,6 +44,14 @@ python3 upgrade.py --devops 260320.1      # Also upgrade devops images
 
 Updates `FROM` tags, `LABEL version=`, and `ENV JCROOTS_UPGRADE=` fields. Version labels use `YYMMDD` format.
 
+`upgrade-all.py` orchestrates upgrades across all personal project repos (`devops`, `devops-vm`, `dockerfiles`) in dependency order:
+
+```bash
+python3 upgrade-all.py            # upgrade all repos (or: make upgrade-all)
+```
+
+Pre-flight checks verify all repos are clean and on `main` before proceeding. Runs `upgrade.py` + `make` (if modified) on each dependency repo first, then on `dockerfiles`.
+
 ## Conventions
 
 - Each image directory contains: `Dockerfile`, `build.sh`, and package lists (`apt.install`, optionally `brew.install`)

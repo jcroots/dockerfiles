@@ -62,8 +62,13 @@ claude-devops:
 prune:
 	docker system prune --force
 
+.PHONY: upgrade-all
+upgrade-all:
+	python3 upgrade-all.py
+
 .PHONY: check
 check:
 	@find . -type f -name '*.sh' | xargs shellcheck
 	@shellcheck -s bash brew/bashrc.brew
 	@python3 -m py_compile upgrade.py && rm -rf __pycache__
+	@python3 -m py_compile upgrade-all.py && rm -rf __pycache__
