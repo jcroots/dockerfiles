@@ -6,11 +6,9 @@ Targets:
   - Terraform            -> claude/claude-devops/terraform-install.sh
   - Debian forky slim    -> debian/forky/Dockerfile
   - Debian bookworm slim -> debian/bookworm/Dockerfile
-  - devops release       -> devops/aws/Dockerfile, devops/gcloud/Dockerfile
 
 Usage:
-  python3 upgrade.py                   # skip devops, upgrade everything else
-  python3 upgrade.py --devops 260320.1 # also upgrade devops to the given version
+  python3 upgrade.py
 """
 
 import json
@@ -26,8 +24,6 @@ WORKSPACE = Path(__file__).parent
 TERRAFORM_SCRIPT    = WORKSPACE / "claude/claude-devops/terraform-install.sh"
 FORKY_DOCKERFILE    = WORKSPACE / "debian/forky/Dockerfile"
 BOOKWORM_DOCKERFILE = WORKSPACE / "debian/bookworm/Dockerfile"
-DEVOPS_AWS_DOCKERFILE    = WORKSPACE / "devops/aws/Dockerfile"
-DEVOPS_GCLOUD_DOCKERFILE = WORKSPACE / "devops/gcloud/Dockerfile"
 
 
 # ---------------------------------------------------------------------------
@@ -207,37 +203,6 @@ def run_debian_bookworm():
     return changed
 
 
-def run_devops(version):
-    any_updated = False
-    for path, image in [
-        (DEVOPS_AWS_DOCKERFILE,    "aws"),
-        (DEVOPS_GCLOUD_DOCKERFILE, "gcloud"),
-    ]:
-        print(f"[devops {image}]")
-        current = read_current(path, rf"FROM ghcr\.io/jcroots/devops/{image}-(\S+):latest")
-        changed_from = update_file(
-            path,
-            rf"FROM ghcr\.io/jcroots/devops/{image}-\S+:latest",
-            f"FROM ghcr.io/jcroots/devops/{image}-{version}:latest",
-        )
-        changed_env = update_file(
-            path,
-            r"ENV JCROOTS_UPGRADE=\S+",
-            f"ENV JCROOTS_UPGRADE={version}",
-        )
-        changed_label = update_version_label(path, today_yymmdd())
-        changed = changed_from or changed_env or changed_label
-        if current == version:
-            print(f"  ok        {current}")
-        else:
-            print(f"  outdated  {current} -> {version}")
-            if changed:
-                print(f"  updated   {path.relative_to(WORKSPACE)}")
-        any_updated = any_updated or changed
-        print()
-    return any_updated
-
-
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
@@ -250,28 +215,8 @@ CHECKS = [
 
 
 def main():
-    args = sys.argv[1:]
-
-    devops_version = None
-    if "--devops" in args:
-        idx = args.index("--devops")
-        if idx + 1 >= len(args) or args[idx + 1].startswith("--"):
-            print("ERROR: --devops requires a version argument", file=sys.stderr)
-            sys.exit(1)
-        devops_version = args[idx + 1]
-
     any_updated = False
     any_error   = False
-
-    if devops_version:
-        try:
-            updated = run_devops(devops_version)
-            any_updated = any_updated or updated
-        except Exception as e:
-            print(f"  ERROR: {e}")
-            any_error = True
-    else:
-        print("[devops] skipped (no --devops VERSION provided)\n")
 
     for fn in CHECKS:
         try:

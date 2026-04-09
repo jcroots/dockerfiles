@@ -39,10 +39,9 @@ Individual images: `cd <dir> && ./build.sh` (each build.sh captures current user
 
 ```bash
 python3 upgrade.py                        # Auto-upgrade Terraform + Debian base tags
-python3 upgrade.py --devops 260320.1      # Also upgrade devops images
 ```
 
-Updates `FROM` tags, `LABEL version=`, and `ENV JCROOTS_UPGRADE=` fields. Version labels use `YYMMDD` format.
+Updates `FROM` tags, `LABEL version=`, and `ENV JCROOTS_UPGRADE=` fields in the debian and terraform targets. Version labels use `YYMMDD` format.
 
 `upgrade-all.py` orchestrates upgrades across all personal project repos (`devops`, `devops-vm`, `dockerfiles`) in dependency order:
 

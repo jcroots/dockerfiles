@@ -31,7 +31,6 @@ volume mounts.
 
 ```bash
 python3 upgrade.py                        # upgrade Terraform + Debian base tags
-python3 upgrade.py --devops 260320.1      # also upgrade devops images
 python3 upgrade-all.py                    # upgrade all repos (devops, devops-vm, dockerfiles)
 ```
 
