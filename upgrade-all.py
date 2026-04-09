@@ -46,8 +46,8 @@ def has_modifications(repo_path):
     return bool(git(repo_path, "status", "--porcelain"))
 
 
-def process_repo(repo_path, name, make_target, dry_run):
-    """Run upgrade.py and optionally make if files changed. Returns True if modified."""
+def process_repo(repo_path, name, make_target, dry_run, force_build=False):
+    """Run upgrade.py and optionally make if files changed. Returns True if built."""
     print(f"\n{'=' * 60}")
     print(f"  Upgrading {name}")
     print(f"{'=' * 60}\n")
@@ -60,8 +60,12 @@ def process_repo(repo_path, name, make_target, dry_run):
     if dry_run:
         return False
 
-    if has_modifications(repo_path):
-        print(f"\n  Building {name} (make {make_target})...\n")
+    modified = has_modifications(repo_path)
+    needs_build = modified or force_build
+
+    if needs_build:
+        reason = "files modified" if modified else "dependency rebuilt"
+        print(f"\n  Building {name} (make {make_target}) [{reason}]...\n")
         subprocess.run(
             ["make", make_target],
             cwd=repo_path,
@@ -88,21 +92,18 @@ def main():
         check_repo(repo_path, name)
         print(f"  {name}: ok")
 
-    # Phase 2: dependency repos
+    # Phase 2: process all repos in dependency order, propagating builds
     modified = []
-    for repo_config in DEPENDENCY_REPOS:
+    any_built = False
+    for repo_config in all_repos:
         name = repo_config["name"]
-        if process_repo(PARENT_DIR / name, name, repo_config["make_target"], dry_run):
+        repo_path = PARENT_DIR / name
+        built = process_repo(
+            repo_path, name, repo_config["make_target"], dry_run, any_built,
+        )
+        if built:
             modified.append(name)
-
-    # Phase 3: this repo
-    if process_repo(
-        PARENT_DIR / SELF_REPO["name"],
-        SELF_REPO["name"],
-        SELF_REPO["make_target"],
-        dry_run,
-    ):
-        modified.append(SELF_REPO["name"])
+            any_built = True
 
     print(f"\n{'=' * 60}")
     print("  All upgrades complete.")
