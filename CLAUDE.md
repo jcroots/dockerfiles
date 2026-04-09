@@ -27,7 +27,7 @@ make brew           # Homebrew layer
 make claude         # Claude dev environment
 make claude-devops  # Claude DevOps environment
 make claude-all     # brew + claude + claude-devops in sequence
-make check          # Shellcheck all .sh files + py_compile upgrade.py
+make check          # Shellcheck all .sh files + py_compile upgrade.py + upgrade-all.py
 make prune          # docker system prune --force
 ```
 
@@ -35,7 +35,7 @@ Individual images: `cd <dir> && ./build.sh` (each build.sh captures current user
 
 ## Version Upgrades
 
-`upgrade.py` checks upstream versions (Terraform, Debian tags, devops releases) and patches Dockerfiles in-place:
+`upgrade.py` checks upstream versions (Terraform, Debian tags) and patches Dockerfiles in-place:
 
 ```bash
 python3 upgrade.py                        # Auto-upgrade Terraform + Debian base tags

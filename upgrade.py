@@ -8,7 +8,8 @@ Targets:
   - Debian bookworm slim -> debian/bookworm/Dockerfile
 
 Usage:
-  python3 upgrade.py
+  python3 upgrade.py            # check and update
+  python3 upgrade.py --dry-run  # check only, no file changes
 """
 
 import json
@@ -101,15 +102,16 @@ def read_current(path, pattern):
     return m.group(1)
 
 
-def update_file(path, pattern, replacement):
-    """Replace first regex match in file. Returns True if content changed."""
+def update_file(path, pattern, replacement, dry_run=False):
+    """Replace first regex match in file. Returns True if content would change."""
     content = path.read_text()
     new_content, count = re.subn(pattern, replacement, content, count=1)
     if count == 0:
         raise RuntimeError(f"Pattern {pattern!r} not found in {path}")
     if new_content == content:
         return False
-    path.write_text(new_content)
+    if not dry_run:
+        path.write_text(new_content)
     return True
 
 
@@ -118,16 +120,16 @@ def today_yymmdd():
     return date.today().strftime("%y%m%d")
 
 
-def update_version_label(path, version):
+def update_version_label(path, version, dry_run=False):
     """Update LABEL version in a Dockerfile."""
-    return update_file(path, r'LABEL version="[^"]*"', f'LABEL version="{version}"')
+    return update_file(path, r'LABEL version="[^"]*"', f'LABEL version="{version}"', dry_run)
 
 
-def update_or_add_jcroots_upgrade(path, version):
+def update_or_add_jcroots_upgrade(path, version, dry_run=False):
     """Update ENV JCROOTS_UPGRADE in a Dockerfile, or add it after LABEL version."""
     content = path.read_text()
     if re.search(r"ENV JCROOTS_UPGRADE=\S+", content):
-        return update_file(path, r"ENV JCROOTS_UPGRADE=\S+", f"ENV JCROOTS_UPGRADE={version}")
+        return update_file(path, r"ENV JCROOTS_UPGRADE=\S+", f"ENV JCROOTS_UPGRADE={version}", dry_run)
     new_content, count = re.subn(
         r'(LABEL version="[^"]*")',
         rf'\1\nENV JCROOTS_UPGRADE={version}',
@@ -138,7 +140,8 @@ def update_or_add_jcroots_upgrade(path, version):
         raise RuntimeError(f"LABEL version not found in {path}")
     if new_content == content:
         return False
-    path.write_text(new_content)
+    if not dry_run:
+        path.write_text(new_content)
     return True
 
 
@@ -146,18 +149,20 @@ def update_or_add_jcroots_upgrade(path, version):
 # Per-tool check + update logic
 # ---------------------------------------------------------------------------
 
-def check(name, current, latest, path, search_pattern, replacement):
+def check(name, current, latest, path, search_pattern, replacement, dry_run):
     if current == latest:
         print(f"  ok        {current}")
         return False
     print(f"  outdated  {current} -> {latest}")
-    changed = update_file(path, search_pattern, replacement)
-    if changed:
+    changed = update_file(path, search_pattern, replacement, dry_run)
+    if changed and not dry_run:
         print(f"  updated   {path.relative_to(WORKSPACE)}")
+    elif changed and dry_run:
+        print(f"  would update {path.relative_to(WORKSPACE)}")
     return changed
 
 
-def run_terraform():
+def run_terraform(dry_run):
     print("[terraform]")
     current = read_current(TERRAFORM_SCRIPT, r"TF_VERSION='([^']+)'")
     latest  = get_latest_terraform()
@@ -166,10 +171,11 @@ def run_terraform():
         TERRAFORM_SCRIPT,
         r"TF_VERSION='[^']+'",
         f"TF_VERSION='{latest}'",
+        dry_run,
     )
 
 
-def run_debian_forky():
+def run_debian_forky(dry_run):
     print("[debian forky slim]")
     current = read_current(FORKY_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_forky_slim()
@@ -178,15 +184,16 @@ def run_debian_forky():
         FORKY_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
+        dry_run,
     )
     if changed:
         version = today_yymmdd()
-        update_version_label(FORKY_DOCKERFILE, version)
-        update_or_add_jcroots_upgrade(FORKY_DOCKERFILE, version)
+        update_version_label(FORKY_DOCKERFILE, version, dry_run)
+        update_or_add_jcroots_upgrade(FORKY_DOCKERFILE, version, dry_run)
     return changed
 
 
-def run_debian_bookworm():
+def run_debian_bookworm(dry_run):
     print("[debian bookworm slim]")
     current = read_current(BOOKWORM_DOCKERFILE, r"FROM debian:(\S+)")
     latest  = get_latest_debian_bookworm_slim()
@@ -195,11 +202,12 @@ def run_debian_bookworm():
         BOOKWORM_DOCKERFILE,
         r"FROM debian:\S+",
         f"FROM debian:{latest}",
+        dry_run,
     )
     if changed:
         version = today_yymmdd()
-        update_version_label(BOOKWORM_DOCKERFILE, version)
-        update_or_add_jcroots_upgrade(BOOKWORM_DOCKERFILE, version)
+        update_version_label(BOOKWORM_DOCKERFILE, version, dry_run)
+        update_or_add_jcroots_upgrade(BOOKWORM_DOCKERFILE, version, dry_run)
     return changed
 
 
@@ -215,12 +223,16 @@ CHECKS = [
 
 
 def main():
+    dry_run = "--dry-run" in sys.argv
+    if dry_run:
+        print("=== DRY-run mode: no files will be modified ===\n")
+
     any_updated = False
     any_error   = False
 
     for fn in CHECKS:
         try:
-            updated = fn()
+            updated = fn(dry_run)
             any_updated = any_updated or updated
         except Exception as e:
             print(f"  ERROR: {e}")
@@ -230,6 +242,8 @@ def main():
     if any_error:
         print("Finished with errors.")
         sys.exit(1)
+    elif any_updated and dry_run:
+        print("Updates available (dry-run, no files changed).")
     elif any_updated:
         print("All updates applied.")
     else:
