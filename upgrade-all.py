@@ -7,12 +7,9 @@ from pathlib import Path
 
 PARENT_DIR = Path(__file__).resolve().parent.parent
 
-DEPENDENCY_REPOS = [
-    {"name": "devops", "make_target": "all"},
-    {"name": "devops-vm", "make_target": "docker"},
-]
+DEPENDENCY_REPOS = ["devops", "devops-vm"]
 
-SELF_REPO = {"name": "dockerfiles", "make_target": "all"}
+SELF_REPO = "dockerfiles"
 
 
 def git(repo_path, *args):
@@ -46,7 +43,7 @@ def has_modifications(repo_path):
     return bool(git(repo_path, "status", "--porcelain"))
 
 
-def process_repo(repo_path, name, make_target, dry_run, force_build=False):
+def process_repo(repo_path, name, dry_run, force_build=False):
     """Run upgrade.py and optionally make if files changed. Returns True if built."""
     print(f"\n{'=' * 60}")
     print(f"  Upgrading {name}")
@@ -65,9 +62,9 @@ def process_repo(repo_path, name, make_target, dry_run, force_build=False):
 
     if needs_build:
         reason = "files modified" if modified else "dependency rebuilt"
-        print(f"\n  Building {name} (make {make_target}) [{reason}]...\n")
+        print(f"\n  Building {name} (make all) [{reason}]...\n")
         subprocess.run(
-            ["make", make_target],
+            ["make", "all"],
             cwd=repo_path,
             check=True,
         )
@@ -86,8 +83,7 @@ def main():
 
     # Phase 1: pre-flight checks
     print("Checking all repositories...\n")
-    for repo_config in all_repos:
-        name = repo_config["name"]
+    for name in all_repos:
         repo_path = PARENT_DIR / name
         check_repo(repo_path, name)
         print(f"  {name}: ok")
@@ -95,12 +91,9 @@ def main():
     # Phase 2: process all repos in dependency order, propagating builds
     modified = []
     any_built = False
-    for repo_config in all_repos:
-        name = repo_config["name"]
+    for name in all_repos:
         repo_path = PARENT_DIR / name
-        built = process_repo(
-            repo_path, name, repo_config["make_target"], dry_run, any_built,
-        )
+        built = process_repo(repo_path, name, dry_run, any_built)
         if built:
             modified.append(name)
             any_built = True
